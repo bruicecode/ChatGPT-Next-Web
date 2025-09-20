@@ -51,40 +51,40 @@ export const DEFAULT_CONFIG = {
   enableAutoGenerateTitle: true,
   sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
 
-  enableArtifacts: true, // show artifacts config
+  enableArtifacts: false, // 禁用 artifacts
 
   enableCodeFold: true, // code fold config
 
-  disablePromptHint: false,
+  disablePromptHint: true, // 禁用提示词提示
 
-  dontShowMaskSplashScreen: false, // dont show splash screen when create chat
-  hideBuiltinMasks: false, // dont add builtin masks
+  dontShowMaskSplashScreen: true, // 不显示 mask 启动屏幕
+  hideBuiltinMasks: true, // 隐藏内置 masks
 
   customModels: "",
   models: DEFAULT_MODELS as any as LLMModel[],
 
   modelConfig: {
-    model: "gpt-4o-mini" as ModelType,
+    model: "BUPTmodel-72B" as ModelType,
     providerName: "OpenAI" as ServiceProvider,
-    temperature: 0.5,
-    top_p: 1,
-    max_tokens: 4000,
+    temperature: 0.7,
+    top_p: 0.95,
+    max_tokens: 1048576,
     presence_penalty: 0,
     frequency_penalty: 0,
-    sendMemory: true,
-    historyMessageCount: 4,
-    compressMessageLengthThreshold: 1000,
+    sendMemory: false, // 不发送历史摘要
+    historyMessageCount: 64, // 附带历史消息数=64
+    compressMessageLengthThreshold: 1048576, // 历史消息长度压缩阈值=1048576
     compressModel: "",
     compressProviderName: "",
-    enableInjectSystemPrompts: true,
-    template: config?.template ?? DEFAULT_INPUT_TEMPLATE,
+    enableInjectSystemPrompts: true, // 启用系统级提示
+    template: DEFAULT_INPUT_TEMPLATE, // 用户输入预处理保持默认
     size: "1024x1024" as ModelSize,
     quality: "standard" as DalleQuality,
     style: "vivid" as DalleStyle,
   },
 
   ttsConfig: {
-    enable: false,
+    enable: true, // 保留TTS功能
     autoplay: false,
     engine: DEFAULT_TTS_ENGINE,
     model: DEFAULT_TTS_MODEL,

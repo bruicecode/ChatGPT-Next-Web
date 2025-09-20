@@ -140,13 +140,13 @@ const DEFAULT_ACCESS_STATE = {
   ai302ApiKey: "",
 
   // server config
-  needCode: true,
-  hideUserApiKey: false,
-  hideBalanceQuery: false,
+  needCode: false, // 禁用访问密码
+  hideUserApiKey: true, // 隐藏用户API密钥输入
+  hideBalanceQuery: true, // 隐藏余额查询
   disableGPT4: false,
-  disableFastLink: false,
-  customModels: "",
-  defaultModel: "",
+  disableFastLink: true, // 禁用快速链接
+  customModels: "-all,+BUPTmodel-72B", // 只启用BUPTmodel-72B
+  defaultModel: "BUPTmodel-72B", // 默认模型
   visionModels: "",
 
   // tts config
