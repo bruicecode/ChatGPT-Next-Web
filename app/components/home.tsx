@@ -21,10 +21,10 @@ import {
   Route,
   Routes,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import { SideBar } from "./sidebar";
-import { useAppConfig } from "../store/config";
-import { AuthPage } from "./auth";
+import { useAppConfig, useChatStore } from "../store";
 import { getClientConfig } from "../config/client";
 import { type ClientApi, getClientApi } from "../client/api";
 import { useAccessStore } from "../store";
@@ -128,6 +128,16 @@ export function WindowContent(props: { children: React.ReactNode }) {
 function Screen() {
   const config = useAppConfig();
   const location = useLocation();
+  const navigate = useNavigate();
+  const chatStore = useChatStore();
+
+  useEffect(() => {
+    if (location.pathname === Path.Home) {
+      chatStore.newSession();
+      navigate(Path.Chat, { replace: true });
+    }
+  }, [location.pathname, navigate, chatStore]);
+
   const isArtifact = location.pathname.includes(Path.Artifacts);
   const isHome = location.pathname === Path.Home;
   const isAuth = location.pathname === Path.Auth;
@@ -160,7 +170,7 @@ function Screen() {
         />
         <WindowContent>
           <Routes>
-            <Route path={Path.Home} element={<Chat />} />
+            <Route path={Path.Home} element={<Loading />} />
             <Route path={Path.Chat} element={<Chat />} />
             {/* 移除不需要的路由：NewChat, Masks, Plugins, SearchChat, Settings, McpMarket */}
           </Routes>

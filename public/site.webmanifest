@@ -1,6 +1,6 @@
 {
-  "name": "NextChat",
-  "short_name": "NextChat",
+  "name": "你的应用名称",
+  "short_name": "你的应用名称",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

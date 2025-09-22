@@ -631,7 +631,7 @@ const cn = {
     },
   },
   Store: {
-    DefaultTopic: "新对话",
+    DefaultTopic: "乐康大模型",
     BotHello: "您好！我是乐康，你的康复助手，很高兴为您服务！",
     Error: "出错了，稍后重试吧",
     Prompt: {

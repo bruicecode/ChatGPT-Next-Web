@@ -11,9 +11,7 @@ import React, {
 
 import SendWhiteIcon from "../icons/send-white.svg";
 import BrainIcon from "../icons/brain.svg";
-import RenameIcon from "../icons/rename.svg";
 import EditIcon from "../icons/rename.svg";
-import ExportIcon from "../icons/share.svg";
 import ReturnIcon from "../icons/return.svg";
 import CopyIcon from "../icons/copy.svg";
 import SpeakIcon from "../icons/speak.svg";
@@ -21,40 +19,20 @@ import SpeakStopIcon from "../icons/speak-stop.svg";
 import VoiceIcon from "../icons/voice.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import LoadingButtonIcon from "../icons/loading.svg";
-import PromptIcon from "../icons/prompt.svg";
-import MaskIcon from "../icons/mask.svg";
-import MaxIcon from "../icons/max.svg";
-import MinIcon from "../icons/min.svg";
 import ResetIcon from "../icons/reload.svg";
-import ReloadIcon from "../icons/reload.svg";
-import BreakIcon from "../icons/break.svg";
-import SettingsIcon from "../icons/chat-settings.svg";
 import DeleteIcon from "../icons/clear.svg";
 import PinIcon from "../icons/pin.svg";
 import ConfirmIcon from "../icons/confirm.svg";
 import CloseIcon from "../icons/close.svg";
 import CancelIcon from "../icons/cancel.svg";
-import ImageIcon from "../icons/image.svg";
 
-import LightIcon from "../icons/light.svg";
-import DarkIcon from "../icons/dark.svg";
-import AutoIcon from "../icons/auto.svg";
 import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
-import RobotIcon from "../icons/robot.svg";
-import SizeIcon from "../icons/size.svg";
-import QualityIcon from "../icons/hd.svg";
-import StyleIcon from "../icons/palette.svg";
-import PluginIcon from "../icons/plugin.svg";
-import ShortcutkeyIcon from "../icons/shortcutkey.svg";
 import McpToolIcon from "../icons/tool.svg";
-import HeadphoneIcon from "../icons/headphone.svg";
 import {
   BOT_HELLO,
   ChatMessage,
   createMessage,
-  DEFAULT_TOPIC,
-  ModelType,
   SubmitKey,
   Theme,
   useAccessStore,
@@ -68,14 +46,11 @@ import {
   copyToClipboard,
   getMessageImages,
   getMessageTextContent,
-  isDalle3,
   isVisionModel,
   safeLocalStorage,
   getModelSizes,
-  supportsCustomSize,
   useMobileScreen,
   selectOrCopy,
-  showPlugins,
 } from "../utils";
 
 import { uploadImage as uploadImageRemote } from "@/app/utils/chat";
@@ -94,7 +69,6 @@ import {
   List,
   ListItem,
   Modal,
-  Selector,
   showConfirm,
   showPrompt,
   showToast,
@@ -110,7 +84,7 @@ import {
   UNFINISHED_INPUT,
 } from "../constant";
 import { Avatar } from "./emoji";
-import { ContextPrompts, MaskAvatar, MaskConfig } from "./mask";
+import { ContextPrompts, MaskConfig } from "./mask";
 import { useMaskStore } from "../store/mask";
 import { ChatCommandPrefix, useChatCommand, useCommand } from "../command";
 import { prettyObject } from "../utils/format";
@@ -122,7 +96,6 @@ import { createTTSPlayer } from "../utils/audio";
 import { MsEdgeTTS, OUTPUT_FORMAT } from "../utils/ms_edge_tts";
 
 import { isEmpty } from "lodash-es";
-import { getModelProvider } from "../utils/model";
 import { RealtimeChat } from "@/app/components/realtime-chat";
 import clsx from "clsx";
 import { getAvailableClientsCount, isMcpEnabled } from "../mcp/actions";
@@ -770,7 +743,7 @@ export function ShortcutKeyModal(props: { onClose: () => void }) {
   );
 }
 
-function _Chat() {
+function ChatContent() {
   type RenderMessage = ChatMessage & { preview?: boolean };
 
   const chatStore = useChatStore();
@@ -817,51 +790,57 @@ function _Chat() {
   const navigate = useNavigate();
   const [attachImages, setAttachImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  
+
   // 语音输入相关状态
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
+    null,
+  );
 
   // 初始化语音识别
   useEffect(() => {
-    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (
+      typeof window !== "undefined" &&
+      ("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
+    ) {
+      const SpeechRecognitionClass =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognitionClass) return;
-      
+
       const recognitionInstance = new SpeechRecognitionClass();
-      
+
       recognitionInstance.continuous = false;
       recognitionInstance.interimResults = false;
-      recognitionInstance.lang = 'zh-CN'; // 设置为中文
-      
+      recognitionInstance.lang = "zh-CN"; // 设置为中文
+
       recognitionInstance.onstart = () => {
-        console.log('[Voice Input] 语音识别开始');
+        console.log("[Voice Input] 语音识别开始");
         setIsRecording(true);
       };
-      
+
       recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
-        console.log('[Voice Input] 识别结果:', transcript);
+        console.log("[Voice Input] 识别结果:", transcript);
         setUserInput(transcript);
         setIsRecording(false);
-        
+
         // 自动提交识别的文本
         setTimeout(() => {
           doSubmit(transcript, true); // 标记为语音输入
         }, 100);
       };
-      
+
       recognitionInstance.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('[Voice Input] 语音识别错误:', event.error);
+        console.error("[Voice Input] 语音识别错误:", event.error);
         setIsRecording(false);
         showToast(`语音识别错误: ${event.error}`);
       };
-      
+
       recognitionInstance.onend = () => {
-        console.log('[Voice Input] 语音识别结束');
+        console.log("[Voice Input] 语音识别结束");
         setIsRecording(false);
       };
-      
+
       setRecognition(recognitionInstance);
     }
   }, []);
@@ -869,7 +848,7 @@ function _Chat() {
   // 语音输入处理函数
   const handleVoiceInput = useCallback(() => {
     if (!recognition) {
-      showToast('您的浏览器不支持语音识别功能');
+      showToast("您的浏览器不支持语音识别功能");
       return;
     }
 
@@ -959,21 +938,19 @@ function _Chat() {
       return;
     }
     setIsLoading(true);
-    chatStore
-      .onUserInput(userInput, attachImages)
-      .then(() => {
-        setIsLoading(false);
-        // 如果是语音输入触发的提交，等待一下然后自动播放最新回复
-        if (fromVoice && config.ttsConfig.enable) {
-          setTimeout(() => {
-            const lastMessage = chatStore.currentSession().messages.slice(-1)[0];
-            if (lastMessage && lastMessage.role === 'assistant') {
-              const textContent = getMessageTextContent(lastMessage);
-              openaiSpeech(textContent);
-            }
-          }, 1000); // 等待1秒确保消息已经完成
-        }
-      });
+    chatStore.onUserInput(userInput, attachImages).then(() => {
+      setIsLoading(false);
+      // 如果是语音输入触发的提交，等待一下然后自动播放最新回复
+      if (fromVoice && config.ttsConfig.enable) {
+        setTimeout(() => {
+          const lastMessage = chatStore.currentSession().messages.slice(-1)[0];
+          if (lastMessage && lastMessage.role === "assistant") {
+            const textContent = getMessageTextContent(lastMessage);
+            openaiSpeech(textContent);
+          }
+        }, 1000); // 等待1秒确保消息已经完成
+      }
+    });
     setAttachImages([]);
     chatStore.setLastInput(userInput);
     setUserInput("");
@@ -1541,8 +1518,12 @@ function _Chat() {
   return (
     <>
       <div className={styles.chat} key={session.id}>
-        <div className="window-header" data-tauri-drag-region>
-          {isMobileScreen && (
+        <div
+          className="window-header"
+          data-tauri-drag-region
+          style={{ flexDirection: "column", alignItems: "center" }}
+        >
+          {false && isMobileScreen && (
             <div className="window-actions">
               <div className={"window-action-button"}>
                 <IconButton
@@ -1554,32 +1535,15 @@ function _Chat() {
               </div>
             </div>
           )}
-
           <div
-            className={clsx("window-header-title", styles["chat-body-title"])}
+            style={{ width: "100%", textAlign: "center", marginTop: "10px" }}
           >
-            <div
-              className={clsx(
-                "window-header-main-title",
-                styles["chat-body-main-title"],
-              )}
-              onClickCapture={() => setIsEditingMessage(true)}
-            >
-              {!session.topic ? DEFAULT_TOPIC : session.topic}
-            </div>
-            <div className="window-header-sub-title">
-              {Locale.Chat.SubTitle(session.messages.length)}
-            </div>
+            <img
+              src="/banner.png"
+              alt="header image"
+              style={{ width: "100%", height: "auto" }}
+            />
           </div>
-          <div className="window-actions">
-            {/* 移除刷新标题按钮，保持极简 */}
-          </div>
-
-          <PromptToast
-            showToast={!hitBottom}
-            showModal={showPromptModal}
-            setShowModal={setShowPromptModal}
-          />
         </div>
         <div className={styles["chat-main"]}>
           <div className={styles["chat-body-container"]}>
@@ -1664,19 +1628,13 @@ function _Chat() {
                               {isUser ? (
                                 <Avatar avatar={config.avatar} />
                               ) : (
-                                <>
-                                  {["system"].includes(message.role) ? (
-                                    <Avatar avatar="2699-fe0f" />
-                                  ) : (
-                                    <MaskAvatar
-                                      avatar={session.mask.avatar}
-                                      model={
-                                        message.model ||
-                                        session.mask.modelConfig.model
-                                      }
-                                    />
-                                  )}
-                                </>
+                                <img
+                                  src="/image.png"
+                                  width={30}
+                                  height={30}
+                                  alt="bot-avatar"
+                                  style={{ borderRadius: "5px" }}
+                                />
                               )}
                             </div>
                             {!isUser && (
@@ -1894,7 +1852,7 @@ function _Chat() {
                   id="chat-input"
                   ref={inputRef}
                   className={styles["chat-input"]}
-                  placeholder={Locale.Chat.Input(submitKey)}
+                  placeholder="输入或说出你的问题..."
                   onInput={(e) => onInput(e.currentTarget.value)}
                   value={userInput}
                   onKeyDown={onInputKeyDown}
@@ -1980,7 +1938,7 @@ function _Chat() {
 }
 
 export function Chat() {
-  const chatStore = useChatStore();
-  const session = chatStore.currentSession();
-  return <_Chat key={session.id}></_Chat>;
+  const session = useChatStore((state) => state.currentSession());
+
+  return <ChatContent key={session.id}></ChatContent>;
 }
